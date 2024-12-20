@@ -1,0 +1,28 @@
+image:
+  file: .gitpod.Dockerfile
+
+ports:
+  - port: 3000
+    onOpen: open-browser
+
+tasks:
+  - name: Rails server
+    init: >
+      bundle install &&
+      yarn install --check-files &&
+      bundle exec rake db:create db:migrate db:seed &&
+      bundle exec rake import:import['public/data1.json']
+      gp sync-done appsetupdone
+    command: bundle exec puma -C config/puma.rb
+
+  - name: Rails console
+    init: gp sync-await appsetupdone
+    command: bundle exec rails console
+  
+  - name: PG Console
+    init: gp sync-await appsetupdone
+    command: bundle exec rails dbconsole
+
+  - name: Background Jobs
+    init: gp sync-await appsetupdone
+    command: bundle exec rake jobs:work
